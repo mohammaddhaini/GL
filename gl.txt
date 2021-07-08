@@ -1,0 +1,658 @@
+#imports
+from tkinter import *   
+from tkinter.messagebox import *
+from tkinter.filedialog import *
+from tkinter.colorchooser import askcolor
+import datetime
+import winsound
+from threading import *
+import calendar
+import tkinter as tk
+from tkinter.ttk import *
+import calendar
+import sounddevice as sd
+from scipy.io.wavfile import write
+import wavio as wv
+import threading
+import pyaudio
+import wave
+from time import strftime
+from PyQt5.QtWidgets import *
+from PyQt5.QtMultimedia import *
+from PyQt5.QtMultimediaWidgets import *
+import os
+import sys
+import time
+
+#tk
+wn = tk.Tk()  
+wn.title("GL")
+wn.geometry("500x200")
+#wn.attributes('-fullscreen', True)
+
+#notpad
+def notpad():
+    class Notepad:
+    
+    	__wn = Tk()
+    
+    	# default window width and height
+    	__thisWidth = 300
+    	__thisHeight = 300
+    	__thisTextArea = Text(__wn)
+    	__thisMenuBar = Menu(__wn)
+    	__thisFileMenu = Menu(__thisMenuBar, tearoff=0)
+    	__thisEditMenu = Menu(__thisMenuBar, tearoff=0)
+    	__thisHelpMenu = Menu(__thisMenuBar, tearoff=0)
+    	
+    	# To add scrollbar
+    	__thisScrollBar = Scrollbar(__thisTextArea)	
+    	__file = None
+    
+    	def __init__(self,**kwargs):
+    
+    		# Set icon
+    		try:
+    				self.__wn.wm_iconbitmap("Notepad.ico")
+    		except:
+    				pass
+    
+    		# Set window size (the default is 300x300)
+    
+    		try:
+    			self.__thisWidth = kwargs['width']
+    		except KeyError:
+    			pass
+    
+    		try:
+    			self.__thisHeight = kwargs['height']
+    		except KeyError:
+    			pass
+    
+    		# Set the window text
+    		self.__wn.title("Untitled - Notepad")
+    
+    		# Center the window
+    		screenWidth = self.__wn.winfo_screenwidth()
+    		screenHeight = self.__wn.winfo_screenheight()
+    	
+    		# For left-alling
+    		left = (screenWidth / 2) - (self.__thisWidth / 2)
+    		
+    		# For right-allign
+    		top = (screenHeight / 2) - (self.__thisHeight /2)
+    		
+    		# For top and bottom
+    		self.__wn.geometry('%dx%d+%d+%d' % (self.__thisWidth,
+    											self.__thisHeight,
+    											left, top))
+    
+    		# To make the textarea auto resizable
+    		self.__wn.grid_rowconfigure(0, weight=1)
+    		self.__wn.grid_columnconfigure(0, weight=1)
+    
+    		# Add controls (widget)
+    		self.__thisTextArea.grid(sticky = N + E + S + W)
+    		
+    		# To open new file
+    		self.__thisFileMenu.add_command(label="New",
+    										command=self.__newFile)	
+    		
+    		# To open a already existing file
+    		self.__thisFileMenu.add_command(label="Open",
+    										command=self.__openFile)
+    		
+    		# To save current file
+    		self.__thisFileMenu.add_command(label="Save",
+    										command=self.__saveFile)	
+    
+    		# To create a line in the dialog		
+    		self.__thisFileMenu.add_separator()										
+    		self.__thisFileMenu.add_command(label="Exit",
+    										command=self.__quitApplication)
+    		self.__thisMenuBar.add_cascade(label="File",
+    									menu=self.__thisFileMenu)	
+    		
+    		# To give a feature of cut
+    		self.__thisEditMenu.add_command(label="Cut",
+    										command=self.__cut)			
+    	
+    		# to give a feature of copy	
+    		self.__thisEditMenu.add_command(label="Copy",
+    										command=self.__copy)		
+    		
+    		# To give a feature of paste
+    		self.__thisEditMenu.add_command(label="Paste",
+    										command=self.__paste)		
+    		
+    		# To give a feature of editing
+    		self.__thisMenuBar.add_cascade(label="Edit",
+    									menu=self.__thisEditMenu)	
+    		
+    		# To create a feature of description of the notepad
+    		self.__thisHelpMenu.add_command(label="About Notepad",
+    										command=self.__showAbout)
+    		self.__thisMenuBar.add_cascade(label="Help",
+    									menu=self.__thisHelpMenu)
+    
+    		self.__wn.config(menu=self.__thisMenuBar)
+    
+    		self.__thisScrollBar.pack(side=RIGHT,fill=Y)					
+    		
+    		# Scrollbar will adjust automatically according to the content		
+    		self.__thisScrollBar.config(command=self.__thisTextArea.yview)	
+    		self.__thisTextArea.config(yscrollcommand=self.__thisScrollBar.set)
+    	
+    		
+    	def __quitApplication(self):
+    		self.__wn.destroy()
+    		# exit()
+    
+    	def __showAbout(self):
+    		showinfo("Notepad","Mrinal Verma")
+    
+    	def __openFile(self):
+    		
+    		self.__file = askopenfilename(defaultextension=".txt",
+    									filetypes=[("All Files","*.*"),("Text Documents","*.txt")])
+    								
+    
+    		if self.__file == "":
+    			
+    			# no file to open
+    			self.__file = None
+    		else:
+    			
+    			# Try to open the file
+    			# set the window title
+    			self.__wn.title(os.path.basename(self.__file) + " - Notepad")
+    			self.__thisTextArea.delete(1.0,END)
+    
+    			file = open(self.__file,"r")
+    
+    			self.__thisTextArea.insert(1.0,file.read())
+    
+    			file.close()
+    
+    		
+    	def __newFile(self):
+    		self.__wn.title("Untitled - Notepad")
+    		self.__file = None
+    		self.__thisTextArea.delete(1.0,END)
+    
+    	def __saveFile(self):
+    
+    		if self.__file == None:
+    			# Save as new file
+    			self.__file = asksaveasfilename(initialfile='Untitled.txt',
+    											defaultextension=".txt",
+    											filetypes=[("Text Documents","*.txt")])
+    
+    			if self.__file == "":
+    				self.__file = None
+    			else:
+    				
+    				# Try to save the file
+    				file = open(self.__file,"w")
+    				file.write(self.__thisTextArea.get(1.0,END))
+    				file.close()
+    				
+    				# Change the window title
+    				self.__wn.title(os.path.basename(self.__file) + " - Notepad")
+    				
+    			
+    		else:
+    			file = open(self.__file,"w")
+    			file.write(self.__thisTextArea.get(1.0,END))
+    			file.close()
+    
+    	def __cut(self):
+    		self.__thisTextArea.event_generate("<<Cut>>")
+    
+    	def __copy(self):
+    		self.__thisTextArea.event_generate("<<Copy>>")
+    
+    	def __paste(self):
+    		self.__thisTextArea.event_generate("<<Paste>>")
+    
+    	def run(self):
+    
+    		# Run main application
+    		self.__wn.mainloop()
+
+
+
+
+# Run main application
+    notepad = Notepad(width=600,height=400)
+    notepad.run()
+
+#paint
+def pa():
+    class Paint(object):
+
+        DEFAULT_PEN_SIZE = 5.0
+        DEFAULT_COLOR = 'black'
+    
+        def __init__(self):
+            self.wn = Tk()
+            
+								
+            self.pen_button = Button(self.wn, text='pen', command=self.use_pen)
+            self.pen_button.grid(row=0, column=0)
+    
+            self.brush_button = Button(self.wn, text='brush', command=self.use_brush)
+            self.brush_button.grid(row=0, column=1)
+    
+            self.color_button = Button(self.wn, text='color', command=self.choose_color)
+            self.color_button.grid(row=0, column=2)
+    
+            self.eraser_button = Button(self.wn, text='eraser', command=self.use_eraser)
+            self.eraser_button.grid(row=0, column=3)
+    
+            self.choose_size_button = Scale(self.wn, from_=1, to=10, orient=HORIZONTAL)
+            self.choose_size_button.grid(row=0, column=4)
+    
+            self.c = Canvas(self.wn, bg='white', width=600, height=600)
+            self.c.grid(row=1, columnspan=5)
+    
+            self.setup()
+            self.wn.mainloop()
+    
+        def setup(self):
+            self.old_x = None
+            self.old_y = None
+            self.line_width = self.choose_size_button.get()
+            self.color = self.DEFAULT_COLOR
+            self.eraser_on = False
+            self.active_button = self.pen_button
+            self.c.bind('<B1-Motion>', self.paint)
+            self.c.bind('<ButtonRelease-1>', self.reset)
+    
+        def use_pen(self):
+            self.activate_button(self.pen_button)
+    
+        def use_brush(self):
+            self.activate_button(self.brush_button)
+    
+        def choose_color(self):
+            self.eraser_on = False
+            self.color = askcolor(color=self.color)[1]
+    
+        def use_eraser(self):
+            self.activate_button(self.eraser_button, eraser_mode=True)
+    
+        def activate_button(self, some_button, eraser_mode=False):
+            self.active_button.config(relief=RAISED)
+            some_button.config(relief=SUNKEN)
+            self.active_button = some_button
+            self.eraser_on = eraser_mode
+    
+        def paint(self, event):
+            self.line_width = self.choose_size_button.get()
+            paint_color = 'white' if self.eraser_on else self.color
+            if self.old_x and self.old_y:
+                self.c.create_line(self.old_x, self.old_y, event.x, event.y,
+                                   width=self.line_width, fill=paint_color,
+                                   capstyle=ROUND, smooth=TRUE, splinesteps=36)
+            self.old_x = event.x
+            self.old_y = event.y
+    
+        def reset(self, event):
+            self.old_x, self.old_y = None, None
+
+
+    if name == '__main__':
+        Paint()
+
+#counter
+counter = 0
+def cou():
+    class cal(object):
+        counter = 0 
+        def counter_label(label):
+          def count():
+            global counter
+            counter += 1
+            label.config(text=str(counter))
+            label.after(1000, count)
+          count()
+         
+         
+        root = tk.Tk()
+        root.title("Counting Seconds")
+        label = tk.Label(root, fg="green")
+        label.pack()
+        counter_label(label)
+        button = tk.Button(root, text='Stop', width=25, command=root.destroy)
+        button.pack()
+    if _name_ == '__main__':
+        cal()
+
+
+#clock   
+def clock():
+    root = Tk()
+    root.title('Clock')
+      
+    # This function is used to 
+    # display time on the label
+    def time():
+        string = strftime('%H:%M:%S %p')
+        lbl.config(text = string)
+        lbl.after(1000, time)
+      
+    # Styling the label widget so that clock
+    # will look more attractive
+    lbl = Label(root, font = ('calibri', 40, 'bold'),
+                background = 'purple',
+                foreground = 'white')
+      
+    # Placing clock at the centre
+    # of the tkinter window
+    lbl.pack(anchor = 'center')
+    time()   
+
+#import numpy as np
+#import cv2
+# importing required libraries
+
+
+def camera():
+
+    # Main window class
+    class MainWindow(QMainWindow):
+    
+    	# constructor
+    	def __init__(self):
+    		super().__init__()
+    
+    		# setting geometry
+    		self.setGeometry(100, 100,
+    						800, 600)
+    
+    		# setting style sheet
+    		self.setStyleSheet("background : lightgrey;")
+    
+    		# getting available cameras
+    		self.available_cameras = QCameraInfo.availableCameras()
+    
+    		# if no camera found
+    		if not self.available_cameras:
+    			# exit the code
+    			sys.exit()
+    
+    		# creating a status bar
+    		self.status = QStatusBar()
+    
+    		# setting style sheet to the status bar
+    		self.status.setStyleSheet("background : white;")
+    
+    		# adding status bar to the main window
+    		self.setStatusBar(self.status)
+    
+    		# path to save
+    		self.save_path = ""
+    
+    		# creating a QCameraViewfinder object
+    		self.viewfinder = QCameraViewfinder()
+    
+    		# showing this viewfinder
+    		self.viewfinder.show()
+    
+    		# making it central widget of main window
+    		self.setCentralWidget(self.viewfinder)
+    
+    		# Set the default camera.
+    		self.select_camera(0)
+    
+    		# creating a tool bar
+    		toolbar = QToolBar("Camera Tool Bar")
+    
+    		# adding tool bar to main window
+    		self.addToolBar(toolbar)
+    
+    		# creating a photo action to take photo
+    		click_action = QAction("Click photo", self)
+    
+    		# adding status tip to the photo action
+    		click_action.setStatusTip("This will capture picture")
+    
+    		# adding tool tip
+    		click_action.setToolTip("Capture picture")
+    
+    
+    		# adding action to it
+    		# calling take_photo method
+    		click_action.triggered.connect(self.click_photo)
+    
+    		# adding this to the tool bar
+    		toolbar.addAction(click_action)
+    
+    		# similarly creating action for changing save folder
+    		change_folder_action = QAction("Change save location",
+    									self)
+    
+    		# adding status tip
+    		change_folder_action.setStatusTip("Change folder where picture will be saved saved.")
+    
+    		# adding tool tip to it
+    		change_folder_action.setToolTip("Change save location")
+    
+    		# setting calling method to the change folder action
+    		# when triggered signal is emitted
+    		change_folder_action.triggered.connect(self.change_folder)
+    
+    		# adding this to the tool bar
+    		toolbar.addAction(change_folder_action)
+    
+    
+    		# creating a combo box for selecting camera
+    		camera_selector = QComboBox()
+    
+    		# adding status tip to it
+    		camera_selector.setStatusTip("Choose camera to take pictures")
+    
+    		# adding tool tip to it
+    		camera_selector.setToolTip("Select Camera")
+    		camera_selector.setToolTipDuration(2500)
+    
+    		# adding items to the combo box
+    		camera_selector.addItems([camera.description()
+    								for camera in self.available_cameras])
+    
+    		# adding action to the combo box
+    		# calling the select camera method
+    		camera_selector.currentIndexChanged.connect(self.select_camera)
+    
+    		# adding this to tool bar
+    		toolbar.addWidget(camera_selector)
+    
+    		# setting tool bar stylesheet
+    		toolbar.setStyleSheet("background : white;")
+    
+    
+    
+    		# setting window title
+    		self.setWindowTitle("PyQt5 Cam")
+    
+    		# showing the main window
+    		self.show()
+    
+    	# method to select camera
+    	def select_camera(self, i):
+    
+    		# getting the selected camera
+    		self.camera = QCamera(self.available_cameras[i])
+    
+    		# setting view finder to the camera
+    		self.camera.setViewfinder(self.viewfinder)
+    
+    		# setting capture mode to the camera
+    		self.camera.setCaptureMode(QCamera.CaptureStillImage)
+    
+    		# if any error occur show the alert
+    		self.camera.error.connect(lambda: self.alert(self.camera.errorString()))
+    
+    		# start the camera
+    		self.camera.start()
+    
+    		# creating a QCameraImageCapture object
+    		self.capture = QCameraImageCapture(self.camera)
+    
+    		# showing alert if error occur
+    		self.capture.error.connect(lambda error_msg, error,
+    								msg: self.alert(msg))
+    
+    		# when image captured showing message
+    		self.capture.imageCaptured.connect(lambda d,
+    										i: self.status.showMessage("Image captured : "
+    																	+ str(self.save_seq)))
+    
+    		# getting current camera name
+    		self.current_camera_name = self.available_cameras[i].description()
+    
+    		# inital save sequence
+    		self.save_seq = 0
+    
+    	# method to take photo
+    	def click_photo(self):
+    
+    		# time stamp
+    		timestamp = time.strftime("%d-%b-%Y-%H_%M_%S")
+    
+    		# capture the image and save it on the save path
+    		self.capture.capture(os.path.join(self.save_path,
+    										"%s-%04d-%s.jpg" % (
+    			self.current_camera_name,
+    			self.save_seq,
+    			timestamp
+    		)))
+    
+    		# increment the sequence
+    		self.save_seq += 1
+    
+    	# change folder method
+    	def change_folder(self):
+            
+    		# open the dialog to select path
+    		path = QFileDialog.getExistingDirectory(self,
+    												"Picture Location", "")
+    
+    		# if path is selected
+    		if path:
+    
+    			# update the path
+    			self.save_path = path
+    
+    			# update the sequence
+    			self.save_seq = 0
+    
+    	# method for alerts
+    	def alert(self, msg):
+    
+    		# error message
+    		error = QErrorMessage(self)
+    
+    		# setting text to the error message
+    		error.showMessage(msg)
+    
+    # Driver code
+    if _name_ == "__main__" :
+    	
+    # create pyqt5 app
+        App = QApplication(sys.argv)
+    
+    # create the instance of our Window
+    window = MainWindow()
+    
+    # start the app
+    sys.exit(App.exec())
+def vr():
+    class App():
+        chunk = 1024 
+        sample_format = pyaudio.paInt16 
+        channels = 2
+        fs = 44100  
+            
+        frames = []  
+        def __init__(self, master):
+            self.isrecording = False
+            self.button1 = tk.Button(main, text='rec',command=self.startrecording)
+            self.button2 = tk.Button(main, text='stop',command=self.stoprecording)
+              
+            self.button1.pack()
+            self.button2.pack()
+        
+        def startrecording(self):
+            self.p = pyaudio.PyAudio()  
+            self.stream = self.p.open(format=self.sample_format,channels=self.channels,rate=self.fs,frames_per_buffer=self.chunk,input=True)
+            self.isrecording = True
+                
+            print('Recording')
+            t = threading.Thread(target=self.record)
+            t.start()
+        
+        def stoprecording(self):
+            self.isrecording = False
+            print('recording complete')
+            self.filename=input('the filename?')
+            self.filename = self.filename+".wav"
+            wf = wave.open(self.filename, 'wb')
+            wf.setnchannels(self.channels)
+            wf.setsampwidth(self.p.get_sample_size(self.sample_format))
+            wf.setframerate(self.fs)
+            wf.writeframes(b''.join(self.frames))
+            wf.close()
+            main.destroy()
+        def record(self):
+               
+            while self.isrecording:
+                data = self.stream.read(self.chunk)
+                self.frames.append(data)
+    		
+    
+    main = tk.Tk()
+    main.title('recorder')
+    main.geometry('200x50')
+    app = App(main)
+    main.mainloop()
+
+toolbar = Frame(wn )
+notepadb = Button(toolbar, text ="notepad", command=notpad )
+notepadb.pack(side=LEFT)
+
+paintb = Button(toolbar, text ="paint", command=pa )
+paintb.pack(side=LEFT)
+
+paintb = Button(toolbar, text ="counter", command=cou )
+paintb.pack(side=LEFT)
+
+paintb = Button(toolbar, text ="clock", command=clock )
+paintb.pack(side=LEFT)
+
+paintb = Button(toolbar, text ="camera", command=camera )
+paintb.pack(side=LEFT)
+
+paintb = Button(toolbar, text ="voice recorder", command=vr )
+paintb.pack(side=LEFT)
+
+toolbar.pack(side = BOTTOM, fill = X)
+
+
+
+
+
+#def onLeave(event):
+    #exit_button.config(bg='white')
+ 
+#def onEnter(event):
+    #exit_button.config(bg='red')
+     
+ 
+ 
+#exit_button = Button(wn, text="X", command=Close)
+#exit_button.grid(column = 8, row= 0)
+#exit_button.bind('<Leave>', onLeave)
+#exit_button.bind('<Enter>', onEnter) 
+wn.mainloop()
